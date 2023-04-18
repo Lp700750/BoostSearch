@@ -2,15 +2,22 @@
 #include<vector>
 #include<string>
 #include<boost/filesystem.hpp>
-#include"Tool.cpp"
+#include"Tool.hpp"
 typedef struct DocInfo
 {
   std::string title;
   std::string content;
   std::string url;
 }doc_t;
+
 const std::string srcFilePath="htmlData";
 const std::string destFilePath="destData/destFile.txt";
+
+
+bool saveFile(const std::string& srcdata,std::vector<std::string>* destdata);
+bool parseHtml(const std::vector<std::string>& _fileList,std::vector<doc_t>* _results);
+bool saveHtml(const std::vector<doc_t>& doc,const std::string& output);
+
 bool saveFile(const std::string& srcdata,std::vector<std::string>* destdata)
 {
   namespace bfpath=boost::filesystem;
@@ -35,11 +42,12 @@ bool saveFile(const std::string& srcdata,std::vector<std::string>* destdata)
     {
       continue;
     }
-    std::cout<<curfile->path().string()<<std::endl;
+    destdata->push_back(curfile->path().string());
+    //std::cout<<curfile->path().string()<<std::endl;
   }
   return true;
 }
-static bool parseTitle(std::string& result,std::string* title)
+static bool parseTitle(const std::string& result,std::string* title)
 {
   std::size_t begin=result.find("<title>");
   if(begin==std::string::npos)
@@ -59,9 +67,10 @@ static bool parseTitle(std::string& result,std::string* title)
     return false;
   }
   *title=result.substr(begin,end-begin);
+  //std::cout<<*title<<std::endl;
   return true;
 }
-static bool parseContent(std::string& result,std::string* content)
+static bool parseContent(const std::string& result,std::string* content)
 {
   enum status
   {
@@ -97,26 +106,34 @@ static bool parseContent(std::string& result,std::string* content)
         break;
     }
   }
+  //std::cout<<*content<<std::endl;
   return true;
 }
-static bool parseUrl(std::string& file,std::string* url)
+static bool parseUrl(const std::string& file,std::string* url)
 {
-  //
-  std::string urlHead="https://www.boost.org/doc/libs/1_78_0/doc/html/";
+  std::string urlHead="https://www.boost.org/doc/libs/1_78_0/doc/html";
   std::string urlTail=file.substr(srcFilePath.size());
   
   *url=urlHead+urlTail;
-
+  
+  //std::cout<<*url<<std::endl;
   return true;
 }
-bool parseHtml(std::vector<std::string>& _fileList,std::vector<doc_t>* _results)
+static void show(const doc_t& doc)
 {
-  for(auto& file:_fileList)
+  std::cout<<"title: "<<doc.title<<std::endl;
+  std::cout<<"content: "<<doc.content<<std::endl;
+  std::cout<<"url: "<<doc.url<<std::endl;
+}
+bool parseHtml(const std::vector<std::string>& fileList,std::vector<doc_t>* results)
+{
+  for(const std::string& file:fileList)
   {
     //读取文件
     std::string result;
     if(!Lp700::fileTool::readFile(file,&result))
     {
+      std::cout<<"readfile"<<std::endl;
       continue;
     }
 
@@ -124,20 +141,50 @@ bool parseHtml(std::vector<std::string>& _fileList,std::vector<doc_t>* _results)
     doc_t doc;
     if(!parseTitle(result,&doc.title))
     {
+      std::cout<<"parseTitle"<<std::endl;
       continue;
     }
     //解析内容
     if(!parseContent(result,&doc.content))
     {
+      std::cout<<"parseContent"<<std::endl;
       continue;
     }
     //解析url
     if(!parseUrl(file,&doc.url))
     {
+      std::cout<<"parseUrl"<<std::endl;
       continue;
     }
-    _results->push_back(std::move(doc));
+    results->push_back(std::move(doc));
+    //show(doc);
   }
+  return true;
+}
+bool saveHtml(const std::vector<doc_t>& doc,const std::string& output)
+{
+  //open file with output
+  std::ofstream out(output,std::ios::out|std::ios::binary);
+  if(!out.is_open())
+  {
+    return false;
+  }
+
+#define SEP '\3'
+  for(auto& file:doc)
+  {
+    std::string outStr;
+    outStr=file.title;
+    outStr+=SEP;
+    outStr+=file.content;
+    outStr+=SEP;
+    outStr+=file.url;
+    outStr+='\n';
+    //std::cout<<outStr<<std::endl;
+    out.write(outStr.c_str(),outStr.size());
+  }
+  out.close();
+  return true;
 }
 int main()
 {
@@ -157,6 +204,10 @@ int main()
     return 2;
   }
   //第三步：将清洗后的数据标题内容网址进行保存
-  if(!saveHtml())
-  return 0;
+  if(!saveHtml(result,destFilePath))
+  {
+    std::cout<<"saveHtml fail!"<<std::endl;
+    return 3;
+  }
+ return 0;
 }
