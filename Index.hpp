@@ -4,6 +4,7 @@
 #include<vector>
 #include<unordered_map>
 #include<fstream>
+#include<mutex>
 namespace index
 {
   struct Docfo
@@ -24,7 +25,29 @@ namespace index
 
   class Index
   {
+  private:
+    //设计成单例模式
+    Index(){}
+    Index(const Index& index)=delete;
+    Index& operator=(const Index& index)=delete;
+    static Index* instance;
+    static std::mutex mtx;
   public:
+    //外部给出公众的实例出类对象的方法
+    static Index* getInstance()
+    {
+      if(instance==nullptr)
+      {
+        mtx.lock();
+        if(instance==nullptr)
+        {
+          instance=new Index();
+        }
+        mtx.unlock();
+      }
+      return instance;
+    }
+
     //建立正排索引
     Docfo* farwardSearch(uint64_t doc_id)
     {
@@ -82,7 +105,7 @@ namespace index
       //设置3部分的分隔符
       const std::string sep="\3";
 
-      Lp700::stringTool::split(line,&result,sep);
+      Lp700::stringTool::Split(line,&result,sep);
 
       //如果分离出来的结果不是三部分，就说明有问题
       if(3!=result.size())
