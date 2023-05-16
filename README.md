@@ -34,4 +34,9 @@ static bool parseContent(const std::string& result,std::string* content);
 static bool parseUrl(const std::string& file,std::string* url);
 ```   
 这部分的功能就是将上面解析出来的文件进行读取，然后分别将每一个文件内部的title,content,url进行解析获取然后保存于上面提到的DocInfo，然后以DocInfo为单位将每一份解析完文件保存于_results当中，便于后面的第三步操作。
-
+#### 1.2.3 _saveHtml_
+```
+bool saveHtml(const std::vector<doc_t>& doc,const std::string& output);
+```
+这部分的内容相较于来说比较简单，它的主要功能就是对上面解析好的文件进行文件输出。
+###  1.3 _Index.hpp_
