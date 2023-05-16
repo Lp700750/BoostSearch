@@ -21,10 +21,17 @@ typedef struct DocInfo
   std::string url;
 }doc_t;
 ```   
-下面这个就是该解析函数，它的主要功能就是对与传入的文件进行检查，看他知否是符合要求的文件，如果是的话就把该文件(带有路径)存放到destdata文件里面，便于后面进行解析文件里面的内容。
+下面这个就是该解析函数，它的主要功能就是对传入的文件srcdata文件夹进行检查，看他是否符合要求的文件，如果是的话就把该文件(带有路径)存放到destdata文件里面，便于后面进行解析文件里面的内容。
 ```   
 bool saveFile(const std::string& srcdata,std::vector<std::string>* destdata);
 ```     
 需要注意的是，它里面的对于文件是否存在，文件的迭代查询采用的都是boost内部自带的库函数
-
+#### 1.2.2 _parseHtml_
+```
+bool parseHtml(const std::vector<std::string>& _fileList,std::vector<doc_t>* _results);
+static bool parseTitle(const std::string& result,std::string* title);
+static bool parseContent(const std::string& result,std::string* content);
+static bool parseUrl(const std::string& file,std::string* url);
+```   
+这部分的功能就是将上面解析出来的文件进行读取，然后分别将每一个文件内部的title,content,url进行解析获取然后保存于上面提到的DocInfo，然后以DocInfo为单位将每一份解析完文件保存于_results当中，便于后面的第三步操作。
 
