@@ -5,7 +5,8 @@
 #include<unordered_map>
 #include<fstream>
 #include<mutex>
-namespace index
+#include"Tool.hpp"
+namespace Lp700_index
 {
   struct Docfo
   {
@@ -22,9 +23,12 @@ namespace index
     uint64_t docid;
   };
   
-
+  typedef std::vector<Node> invertList;
   class Index
   {
+  private:
+    std::vector<Docfo> farwardIndex;
+    std::unordered_map<std::string,std::vector<Node>> invertIndex;
   private:
     //设计成单例模式
     Index(){}
@@ -32,6 +36,7 @@ namespace index
     Index& operator=(const Index& index)=delete;
     static Index* instance;
     static std::mutex mtx;
+
   public:
     //外部给出公众的实例出类对象的方法
     static Index* getInstance()
@@ -59,7 +64,7 @@ namespace index
     }
 
     //建立倒排索引
-    std::vector<Node>* invertSearch(const std::string& word)
+    invertList* invertSearch(const std::string& word)
     {
       auto iter=invertIndex.find(word);
       if(iter==invertIndex.end())
@@ -150,7 +155,7 @@ namespace index
       std::vector<std::string> titleVec;
 
       //对标题进行jieba分词
-      Lp700::jiebaTool::cutString(doc.title,&titleVec);
+      Lp700::jiebaUtil::CutString(doc.title,&titleVec);
 
       //对标题当中的分词进行词频统计
       for(std::string s:titleVec)
@@ -166,7 +171,7 @@ namespace index
       std::vector<std::string> contentVec;
 
       //用来对内进行分词处理
-      Lp700::jiebaTool::cutString(doc.content,&contentVec);
+      Lp700::jiebaUtil::CutString(doc.content,&contentVec);
 
       //对内容当中的分词进行词频统计
       for(std::string s:contentVec)
@@ -188,8 +193,7 @@ namespace index
       }
       return true;
     }
-  private:
-    std::vector<Docfo> farwardIndex;
-    std::unordered_map<std::string,std::vector<Node>> invertIndex;
   };
+  Index* Index::instance=nullptr;
+  std::mutex Index::mtx;
 }
