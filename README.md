@@ -60,6 +60,3 @@ bool saveHtml(const std::vector<doc_t>& doc,const std::string& output);
 - 对搜索出来的结果进行Json序列化，便于传送给前端展示
 #### 1.4.2 _GetDesc_
 为了方便用户观看搜查的结果，这里面在内容的展示哪里，会将第一个关键词的前后一定数量的内容进行展示，便于用户观看。
-
-## 结果展示
-## 补充说明
